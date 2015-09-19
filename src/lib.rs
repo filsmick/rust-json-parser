@@ -139,22 +139,26 @@ impl<'input> JsonParser<'input> {
     println!("remaining '{}'", self.remaining_data.get());
 
     let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
+    let string = self.read_chars(idx);
 
-    let slice = &self.remaining_data.get()[..idx];
-    self.current_idx.set(self.current_idx.get() + idx);
     println!("idx: {}, current_idx: {}", idx, self.current_idx.get());
     println!("current char: {:?}, next char: {:?}", self.current_char(), self.next_char());
 
     self.expect('"');
 
-    slice
+    string
+  }
+
+  fn read_chars(&self, n: usize) -> &'input str {
+    self.current_idx.set(self.current_idx.get() + n);
+    &self.remaining_data.get()[..n]
   }
 
   fn parse_number(&self) -> f64 {
     let idx = self.remaining_data.get().chars().take_while(|c| *c != ',').count();
-    let slice = &self.remaining_data.get()[..idx];
-    self.current_idx.set(self.current_idx.get() + idx);
-    slice.parse().unwrap()
+
+    let string = self.read_chars(idx);
+    string.parse().unwrap()
   }
 
   fn parse_bool(&self) -> bool {
