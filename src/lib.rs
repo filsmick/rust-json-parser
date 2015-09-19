@@ -29,7 +29,9 @@ use std::cell::Cell;
 struct JsonParser<'input> {
   input: &'input str,
   remaining_data: Cell<&'input str>,
-  current_idx: Cell<usize>
+  current_idx: Cell<usize>,
+  current_line: Cell<usize>,
+  current_column: Cell<usize>
 }
 
 impl<'input> JsonParser<'input> {
@@ -37,7 +39,9 @@ impl<'input> JsonParser<'input> {
     JsonParser {
       input: input,
       remaining_data: Cell::new(input),
-      current_idx: Cell::new(0)
+      current_idx: Cell::new(0),
+      current_line: Cell::new(1), // lines and columns are 1-indexed
+      current_column: Cell::new(1)
     }
   }
 
@@ -79,13 +83,16 @@ impl<'input> JsonParser<'input> {
     self.next();
   }
 
+  fn read_chars(&self, n: usize) -> &'input str {
+    self.current_idx.set(self.current_idx.get() + n);
+    &self.remaining_data.get()[..n]
+  }
 
   fn parse_object(&self) -> HashMap<&'input str, JsonValue<'input>> {
     let mut output: HashMap<&str, JsonValue> = HashMap::new();
 
     self.expect('{');
 
-    // while self.current_char() != '}'
      loop {
       println!("{:?}", self.current_idx);
       let (property, value) = self.parse_key_value_pair();
@@ -101,10 +108,8 @@ impl<'input> JsonParser<'input> {
           break;
         },
         c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
-        //None => panic!("Unexpected end of input")
       }
     }
-
 
     output
   }
@@ -147,11 +152,6 @@ impl<'input> JsonParser<'input> {
     self.expect('"');
 
     string
-  }
-
-  fn read_chars(&self, n: usize) -> &'input str {
-    self.current_idx.set(self.current_idx.get() + n);
-    &self.remaining_data.get()[..n]
   }
 
   fn parse_number(&self) -> f64 {
