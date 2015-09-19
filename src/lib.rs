@@ -45,11 +45,17 @@ impl<'input> JsonParser<'input> {
     self.input.char_at(self.current_idx.get())
   }
 
-  fn next_char(&self) -> char {
-    self.input.char_at(self.current_idx.get() + 1)
+  fn next_char(&self) -> Option<char> {
+    let next_idx = self.current_idx.get() + 1;
+    if next_idx < self.input.len() {
+      Some(self.input.char_at(next_idx))
+    } else {
+      None
+    }
   }
 
   fn next(&self) {
+    println!("Current: {}, next: {:?}", self.current_char(), self.next_char());
     self.current_idx.set(self.current_idx.get() + 1);
     self.remaining_data.set(
       &self.input[self.current_idx.get()..]
@@ -57,25 +63,48 @@ impl<'input> JsonParser<'input> {
   }
 
   fn expect(&self, expected: char) {
-    //println!("Expecting: {}", expected);
     assert_eq!(
-      self.input.char_at(self.current_idx.get()),
+      self.current_char(),
       expected
     );
     self.next();
   }
+
+  fn expect_one_of(&self, expected: &[char]) {
+    let current_char = self.current_char();
+    if !expected.contains(&current_char) {
+      panic!("Expected {:?}, found {}", expected, current_char);
+    }
+
+    self.next();
+  }
+
 
   fn parse_object(&self) -> HashMap<&'input str, JsonValue<'input>> {
     let mut output: HashMap<&str, JsonValue> = HashMap::new();
 
     self.expect('{');
 
-    while self.current_char() != '}' {
+    // while self.current_char() != '}'
+     loop {
+      println!("{:?}", self.current_idx);
       let (property, value) = self.parse_key_value_pair();
       output.insert(property, value);
+
+      match self.current_char() {
+        ',' => {
+          self.expect(',');
+          continue;
+        },
+        '}' => {
+          self.expect('}');
+          break;
+        },
+        c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
+        //None => panic!("Unexpected end of input")
+      }
     }
 
-    self.expect('}');
 
     output
   }
@@ -94,8 +123,12 @@ impl<'input> JsonParser<'input> {
   }
 
   fn parse_value(&self) -> JsonValue<'input> {
-    if self.next_char() == '"' {
+    if self.current_char() == '"' {
       JsonValue::String(self.parse_string())
+    } else if self.current_char().is_digit(10) || self.current_char() == '-' {
+      JsonValue::Number(self.parse_number())
+    } else if self.current_char() == 't' || self.current_char() == 'f' {
+      JsonValue::Boolean(self.parse_bool())
     } else {
       unimplemented!()
     }
@@ -109,11 +142,40 @@ impl<'input> JsonParser<'input> {
 
     let slice = &self.remaining_data.get()[..idx];
     self.current_idx.set(self.current_idx.get() + idx);
-    println!("idx: {}", idx);
+    println!("idx: {}, current_idx: {}", idx, self.current_idx.get());
+    println!("current char: {:?}, next char: {:?}", self.current_char(), self.next_char());
 
     self.expect('"');
 
     slice
+  }
+
+  fn parse_number(&self) -> f64 {
+    let idx = self.remaining_data.get().chars().take_while(|c| *c != ',').count();
+    let slice = &self.remaining_data.get()[..idx];
+    self.current_idx.set(self.current_idx.get() + idx);
+    slice.parse().unwrap()
+  }
+
+  fn parse_bool(&self) -> bool {
+    match self.current_char() {
+      't' => {
+        self.expect('t');
+        self.expect('r');
+        self.expect('u');
+        self.expect('e');
+        true
+      },
+      'f' => {
+        self.expect('f');
+        self.expect('a');
+        self.expect('l');
+        self.expect('s');
+        self.expect('e');
+        false
+      },
+      _ => unreachable!()
+    }
   }
 }
 
@@ -144,16 +206,14 @@ fn test_just_one_string_minified() {
   let mut expected = HashMap::new();
   expected.insert("a_string", JsonValue::String("Hello world!"));
 
-  let result = parse_json(input);
-
-  assert_eq!(result, expected);
+  assert_eq!(parse_json(input), expected);
 }
 
 
 
 #[test]
 fn test_bigger_object_minified() {
-  let input = r##"{"a_string":"Hello world!","an_integer": 17,"a_float": 3.14,"a_true_bool": true,"a_false_bool": false}"##;
+  let input = r##"{"a_string":"Hello world!","an_integer":17,"a_float":3.14,"a_true_bool":true,"a_false_bool":false}"##;
 
   let mut expected = HashMap::new();
   expected.insert("a_string", JsonValue::String("Hello world!"));
