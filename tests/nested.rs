@@ -15,6 +15,7 @@ fn test_nested_object_simple() {
 
     top_level_obj
   };
+  let expected = JsonValue::Object(expected);
 
   assert_eq!(parse_json(input), expected);
 }
@@ -53,6 +54,8 @@ fn test_bigger_object_nested_beautified_trailing_comma() {
     top_level_obj
   };
 
+  let expected = JsonValue::Object(expected);
+
   assert_eq!(parse_json(input), expected);
 }
 
@@ -90,6 +93,8 @@ fn test_invalid_bigger_object_nested_beautified_double_comma() {
 
     top_level_obj
   };
+
+  let expected = JsonValue::Object(expected);
 
   assert_eq!(parse_json(input), expected);
 }

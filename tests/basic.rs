@@ -9,6 +9,7 @@ fn test_just_one_string() {
 
   let mut expected = HashMap::new();
   expected.insert("a_string", JsonValue::String("Hello world!"));
+  let expected = JsonValue::Object(expected);
 
   assert_eq!(parse_json(input), expected);
 }
@@ -21,6 +22,7 @@ fn test_just_one_string_beautified() {
 
   let mut expected = HashMap::new();
   expected.insert("a_string", JsonValue::String("Hello world!"));
+  let expected = JsonValue::Object(expected);
 
   assert_eq!(parse_json(input), expected);
 }
