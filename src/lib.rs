@@ -187,9 +187,11 @@ impl<'input> JsonParser<'input> {
   }
 
   fn parse_number(&self) -> f64 {
-    let idx = self.remaining_data.get().chars().take_while(|c| *c != ',').count();
+    let idx = self.remaining_data.get().chars().take_while(|c| { c.is_digit(10) || *c == '.' }).count();
 
     let string = self.read_chars(idx);
+
+    println!("String to be parsed as number: {:?}", string);
     string.parse().unwrap()
   }
 
