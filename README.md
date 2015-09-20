@@ -8,7 +8,6 @@ Inspired by [Douglas Crockford's JSON parser](https://github.com/douglascrockfor
 I'm doing this for fun, and to teach myself parser design.
 
 ## Things left to implement:
-- `null` values
 - exponentials
 - better errors (no panic)
 - (optional) handle floats and integers separately
