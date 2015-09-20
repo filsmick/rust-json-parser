@@ -183,18 +183,13 @@ impl<'input> JsonParser<'input> {
   }
 
   fn parse_value(&self) -> JsonValue<'input> {
-    if self.current_char() == '"' {
-      JsonValue::String(self.parse_string())
-    } else if self.current_char().is_digit(10) || self.current_char() == '-' {
-      JsonValue::Number(self.parse_number())
-    } else if self.current_char() == 't' || self.current_char() == 'f' {
-      JsonValue::Boolean(self.parse_bool())
-    } else if self.current_char() == '{' {
-      JsonValue::Object(self.parse_object())
-    } else if self.current_char() == '[' {
-      JsonValue::Array(self.parse_array())
-    } else {
-      unimplemented!()
+    match self.current_char() {
+      '"' => JsonValue::String(self.parse_string()),
+      c if c.is_digit(10) || c == '-' => JsonValue::Number(self.parse_number()),
+      't' | 'f' => JsonValue::Boolean(self.parse_bool()),
+      '{' => JsonValue::Object(self.parse_object()),
+      '[' => JsonValue::Array(self.parse_array()),
+      _ => unimplemented!()
     }
   }
 
