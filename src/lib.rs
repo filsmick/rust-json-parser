@@ -1,7 +1,6 @@
 #![feature(str_char)]
 use std::collections::HashMap;
 use std::cell::Cell;
-use std::ops::Range;
 
 struct JsonParser<'input> {
   input: &'input str,
@@ -174,11 +173,6 @@ impl<'input> JsonParser<'input> {
   }
 
   fn parse_number(&self) -> f64 {
-    // let mut chars_iter = self.remaining_data.get().chars();
-    //
-    // if chars_iter.
-    // let idx = .take_while(|c| { c.is_digit(10) || *c == '.' }).count();
-
     /*
            end of integer part
            |
@@ -190,8 +184,6 @@ impl<'input> JsonParser<'input> {
     */
 
     let integer_part_start: usize = self.current_idx.get();
-    //let mut integer_part_end: usize = self.current_idx.get();
-
 
     if self.current_char() == '-' {
       self.next();
@@ -199,7 +191,6 @@ impl<'input> JsonParser<'input> {
 
     while self.current_char().is_digit(10) {
       self.next();
-      //integer_part_end += 1;
     }
 
     let mut decimal_part_end: usize = self.current_idx.get();
