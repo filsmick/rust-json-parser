@@ -56,12 +56,20 @@ impl<'input> JsonParser<'input> {
     if new_idx < self.input.len() {
       self.current_idx.set(new_idx);
 
-      for c in (&self.remaining_data()[..n]).chars() {
+      let update_ctx = |c| {
         if c == '\n' {
           self.current_line.set(self.current_line.get() + 1);
           self.current_column.set(1);
         } else {
           self.current_column.set(self.current_column.get() + 1);
+        }
+      };
+
+      if n == 1 {
+        update_ctx(self.current_char());
+      } else {
+        for c in (&self.remaining_data()[..n]).chars() {
+          update_ctx(c);
         }
       }
     }
@@ -187,10 +195,10 @@ impl<'input> JsonParser<'input> {
     Ok(
       match self.current_char() {
         '"' => JsonValue::String(try!(self.parse_string())),
-        c if c.is_digit(10) || c == '-' => JsonValue::Number(try!(self.parse_number())),
-        't' | 'f' => JsonValue::Boolean(try!(self.parse_bool())),
         '{' => JsonValue::Object(try!(self.parse_object())),
         '[' => JsonValue::Array(try!(self.parse_array())),
+        c if c.is_digit(10) || c == '-' => JsonValue::Number(try!(self.parse_number())),
+        't' | 'f' => JsonValue::Boolean(try!(self.parse_bool())),
         'n' => {
           try!(self.expect('n'));
           try!(self.expect('u'));

@@ -2,3 +2,7 @@
 name = "json-parser"
 version = "0.1.0"
 authors = ["Yohai Berreby (filsmick) <yohaiberreby@gmail.com>"]
+
+[profile.release]
+lto = false
+debug = true
