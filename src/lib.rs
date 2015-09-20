@@ -140,9 +140,8 @@ impl<'input> JsonParser<'input> {
     self.expect_optional_whitespace();
     self.expect(':');
     self.expect_optional_whitespace();
-    // TODO whitespace
-
     let value = self.parse_value();
+    self.expect_optional_whitespace();
     println!("Got a value: '{:?}'", value);
 
     (property_name, value)
@@ -155,6 +154,8 @@ impl<'input> JsonParser<'input> {
       JsonValue::Number(self.parse_number())
     } else if self.current_char() == 't' || self.current_char() == 'f' {
       JsonValue::Boolean(self.parse_bool())
+    } else if self.current_char() == '{' {
+      JsonValue::Object(self.parse_object())
     } else {
       unimplemented!()
     }
@@ -210,11 +211,6 @@ fn parse_json(input: &str) -> HashMap<&str, JsonValue> {
   parser.parse_object()
 }
 
-// fn parse_object(input: Chars) -> HashMap<&str, JsonValue> {
-//   if input.next()
-//
-//   unimplemented!()
-// }
 
 #[derive(PartialEq, Debug)]
 enum JsonValue<'a> {
