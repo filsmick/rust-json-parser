@@ -24,7 +24,7 @@ fn test_bigger_object_nested_beautified_trailing_comma() {
   let input = r##"{
     "a_string": "Hello world!",
     "an_integer": 17,
-    "a_float": 3.14,
+    "a_float": 3.26,
     "a_true_bool": true,
     "a_false_bool": false,
     "a_nested_object": {
@@ -45,7 +45,7 @@ fn test_bigger_object_nested_beautified_trailing_comma() {
     let mut top_level_obj = HashMap::new();
     top_level_obj.insert("a_string", JsonValue::String("Hello world!"));
     top_level_obj.insert("an_integer", JsonValue::Number(17.0));
-    top_level_obj.insert("a_float", JsonValue::Number(3.14));
+    top_level_obj.insert("a_float", JsonValue::Number(3.26));
     top_level_obj.insert("a_true_bool", JsonValue::Boolean(true));
     top_level_obj.insert("a_false_bool", JsonValue::Boolean(false));
     top_level_obj.insert("a_nested_object", JsonValue::Object(nested_obj));
