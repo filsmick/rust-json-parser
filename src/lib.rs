@@ -35,12 +35,12 @@ impl<'input> JsonParser<'input> {
   }
 
   fn next(&self) {
-    //println!("Current: {}, next: {:?} - {}:{}", self.current_char(), self.next_char(), self.current_line.get(), self.current_column.get());
+    ////println!("Current: {}, next: {:?} - {}:{}", self.current_char(), self.next_char(), self.current_line.get(), self.current_column.get());
     self.consume(1);
   }
 
   fn consume(&self, n: usize) -> Option<&'input str> {
-    println!("Consume n: {}", n);
+    //println!("Consume n: {}", n);
     let new_idx = self.current_idx.get() + n;
 
     if new_idx < self.input.len() {
@@ -61,7 +61,7 @@ impl<'input> JsonParser<'input> {
       );
       ret
     } else {
-      println!("Reached end of input"); // XXX: maybe current_char should return an Option.
+      //println!("Reached end of input"); // XXX: maybe current_char should return an Option.
       None
     }
   }
@@ -74,7 +74,7 @@ impl<'input> JsonParser<'input> {
     let current_char = self.current_char();
 
     if current_char != expected {
-      println!("Expected '{}', found '{}'", expected, current_char);
+      //println!("Expected '{}', found '{}'", expected, current_char);
       self.parse_error();
     }
 
@@ -95,7 +95,7 @@ impl<'input> JsonParser<'input> {
     self.expect_optional_whitespace();
 
     loop {
-      println!("{:?}", self.current_idx);
+      //println!("{:?}", self.current_idx);
       let (property, value) = self.parse_key_value_pair();
       output.insert(property, value);
 
@@ -170,14 +170,14 @@ impl<'input> JsonParser<'input> {
 
   fn parse_key_value_pair(&self) -> (&'input str, JsonValue<'input>) {
     let property_name = self.parse_string();
-    println!("Got a property name: '{}'", property_name);
+    //println!("Got a property name: '{}'", property_name);
 
     self.expect_optional_whitespace();
     self.expect(':');
     self.expect_optional_whitespace();
     let value = self.parse_value();
     self.expect_optional_whitespace();
-    println!("Got a value: '{:?}'", value);
+    //println!("Got a value: '{:?}'", value);
 
     (property_name, value)
   }
@@ -200,13 +200,13 @@ impl<'input> JsonParser<'input> {
 
   fn parse_string(&self) -> &'input str {
     self.expect('"');
-    println!("remaining '{}'", self.remaining_data.get());
+    //println!("remaining '{}'", self.remaining_data.get());
 
     let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
     let string = self.consume(idx).unwrap();
 
-    println!("idx: {}, current_idx: {}", idx, self.current_idx.get());
-    println!("current char: {:?}, next char: {:?}", self.current_char(), self.next_char());
+    //println!("idx: {}, current_idx: {}", idx, self.current_idx.get());
+    //println!("current char: {:?}, next char: {:?}", self.current_char(), self.next_char());
 
     self.expect('"');
 
@@ -247,7 +247,7 @@ impl<'input> JsonParser<'input> {
 
     let string = &self.input[integer_part_start..decimal_part_end];
 
-    println!("String to be parsed as number: {:?}", string);
+    //println!("String to be parsed as number: {:?}", string);
     string.parse().unwrap()
   }
 
