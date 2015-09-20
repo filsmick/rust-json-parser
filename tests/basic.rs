@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 
 #[test]
-fn test_just_one_string() {
+fn just_one_string() {
   let input = r##"{"a_string":"Hello world!"}"##;
 
   let mut expected = HashMap::new();
@@ -15,7 +15,7 @@ fn test_just_one_string() {
 }
 
 #[test]
-fn test_just_one_string_beautified() {
+fn just_one_string_beautified() {
   let input = r##"{
     "a_string": "Hello world!"
 }}"##;

@@ -3,7 +3,7 @@ use json_parser::*;
 use std::collections::HashMap;
 
 #[test]
-fn test_nested_object_simple() {
+fn nested_object_simple() {
   let input = r##"{"object_name":{"prop_name": "value in nested object"}}"##;
 
   let expected = {
@@ -21,7 +21,7 @@ fn test_nested_object_simple() {
 }
 
 #[test]
-fn test_bigger_object_nested_beautified_trailing_comma() {
+fn bigger_object_nested_beautified_trailing_comma() {
   let input = r##"{
     "a_string": "Hello world!",
     "an_integer": 17,
@@ -61,7 +61,7 @@ fn test_bigger_object_nested_beautified_trailing_comma() {
 
 #[test]
 #[should_panic]
-fn test_invalid_bigger_object_nested_beautified_double_comma() {
+fn invalid_bigger_object_nested_beautified_double_comma() {
   let input = r##"{
     "a_string": "Hello world!",
     "an_integer": 17,

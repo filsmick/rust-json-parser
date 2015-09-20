@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 
 #[test]
-fn test_just_one_string_trailing_comma() {
+fn just_one_string_trailing_comma() {
   let input = r##"{
     "a_string": "Hello world!",
 }}"##;
@@ -18,7 +18,7 @@ fn test_just_one_string_trailing_comma() {
 }
 
 #[test]
-fn test_bigger_object() {
+fn bigger_object() {
   let input = r##"{"a_string":"Hello world!","an_integer":17,"a_float":3.14,"a_true_bool":true,"a_false_bool":false}"##;
 
   let mut expected = HashMap::new();
@@ -34,7 +34,7 @@ fn test_bigger_object() {
 }
 
 #[test]
-fn test_simple_composite_array() {
+fn simple_composite_array() {
   let input = r##"[true, 1, 0, 17.9, "A string"]"##;
 
   let mut expected = Vec::new();
