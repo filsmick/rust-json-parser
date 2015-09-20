@@ -5,7 +5,6 @@ use parse_error::*;
 
 pub struct JsonParser<'input> {
   input: &'input str,
-  remaining_data: Cell<&'input str>,
   current_idx: Cell<usize>,
   current_line: Cell<usize>,
   current_column: Cell<usize>
@@ -17,7 +16,6 @@ impl<'input> JsonParser<'input> {
   pub fn new(input: &str) -> JsonParser {
     JsonParser {
       input: input,
-      remaining_data: Cell::new(input),
       current_idx: Cell::new(0),
       current_line: Cell::new(1), // lines and columns are 1-indexed
       current_column: Cell::new(1)
@@ -48,13 +46,17 @@ impl<'input> JsonParser<'input> {
     self.current_idx.get()
   }
 
+  fn remaining_data(&self) -> &'input str {
+    &self.input[self.current_idx()..]
+  }
+
   fn next(&self, n: usize) {
     let new_idx = self.current_idx.get() + n;
 
     if new_idx < self.input.len() {
       self.current_idx.set(new_idx);
 
-      for c in (&self.remaining_data.get()[..n]).chars() {
+      for c in (&self.remaining_data()[..n]).chars() {
         if c == '\n' {
           self.current_line.set(self.current_line.get() + 1);
           self.current_column.set(1);
@@ -62,10 +64,6 @@ impl<'input> JsonParser<'input> {
           self.current_column.set(self.current_column.get() + 1);
         }
       }
-
-      self.remaining_data.set(
-        &self.input[self.current_idx.get()..]
-      );
     }
   }
 
