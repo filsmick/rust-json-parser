@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::cell::Cell;
 use JsonValue;
+use parse_error::*;
 
 pub struct JsonParser<'input> {
   input: &'input str,
@@ -24,13 +25,21 @@ impl<'input> JsonParser<'input> {
   }
 
   /// Parse the input as an array or an object.
-  pub fn parse(&self) -> JsonValue<'input> {
-    self.parse_value()
+  pub fn parse(&self) -> ParseResult<JsonValue<'input>> {
+    Ok(try!(self.parse_value()))
   }
 }
 
 // Private methods
 impl<'input> JsonParser<'input> {
+  fn current_line(&self) -> usize {
+    self.current_line.get()
+  }
+
+  fn current_column(&self) -> usize {
+    self.current_column.get()
+  }
+
   fn current_char(&self) -> char {
     self.input.char_at(self.current_idx.get())
   }
@@ -64,19 +73,21 @@ impl<'input> JsonParser<'input> {
     }
   }
 
-  fn parse_error(&self) -> ! {
-    panic!("At {}:{}", self.current_line.get(), self.current_column.get());
-  }
+  fn expect(&self, expected: char) -> ParseResult<()> {
+    let found = self.current_char();
 
-  fn expect(&self, expected: char) {
-    let current_char = self.current_char();
-
-    if current_char != expected {
-
-      self.parse_error();
+    if found != expected {
+      return Err(
+        ParseError::new(
+          ParseErrorKind::UnexpectedCharacter(found, expected),
+          self.current_line(),
+          self.current_column()
+        )
+      );
     }
 
     self.next();
+    Ok(())
   }
 
   fn expect_optional_whitespace(&self) {
@@ -85,28 +96,28 @@ impl<'input> JsonParser<'input> {
     }
   }
 
-  fn parse_object(&self) -> HashMap<&'input str, JsonValue<'input>> {
+  fn parse_object(&self) -> ParseResult<HashMap<&'input str, JsonValue<'input>>> {
     let mut output: HashMap<&str, JsonValue> = HashMap::new();
 
     self.expect_optional_whitespace();
-    self.expect('{');
+    try!(self.expect('{'));
     self.expect_optional_whitespace();
 
     loop {
 
-      let (property, value) = self.parse_key_value_pair();
+      let (property, value) = try!(self.parse_key_value_pair());
       output.insert(property, value);
 
       self.expect_optional_whitespace();
 
       match self.current_char() {
         ',' => {
-          self.expect(',');
+          try!(self.expect(','));
           self.expect_optional_whitespace();
 
           match self.current_char() {
             '}' => {
-              self.expect('}');
+              try!(self.expect('}'));
               break;
             },
             _ => {
@@ -115,7 +126,7 @@ impl<'input> JsonParser<'input> {
           }
         },
         '}' => {
-          self.expect('}');
+          try!(self.expect('}'));
           break;
         },
         c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
@@ -124,30 +135,30 @@ impl<'input> JsonParser<'input> {
 
     self.expect_optional_whitespace();
 
-    output
+    Ok(output)
   }
 
-  fn parse_array(&self) -> Vec<JsonValue<'input>> {
+  fn parse_array(&self) -> ParseResult<Vec<JsonValue<'input>>> {
     let mut output = Vec::with_capacity(2);
 
     self.expect_optional_whitespace();
-    self.expect('[');
+    try!(self.expect('['));
     self.expect_optional_whitespace();
 
     loop {
-      let value = self.parse_value();
+      let value = try!(self.parse_value());
       output.push(value);
 
       self.expect_optional_whitespace();
 
       match self.current_char() {
         ',' => {
-          self.expect(',');
+          try!(self.expect(','));
           self.expect_optional_whitespace();
 
           match self.current_char() {
             ']' => {
-              self.expect(']');
+              try!(self.expect(']'));
               break;
             },
             _ => {
@@ -156,58 +167,60 @@ impl<'input> JsonParser<'input> {
           }
         },
         ']' => {
-          self.expect(']');
+          try!(self.expect(']'));
           break;
         },
         c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
       }
     }
 
-    output
+    Ok(output)
   }
 
-  fn parse_key_value_pair(&self) -> (&'input str, JsonValue<'input>) {
-    let property_name = self.parse_string();
+  fn parse_key_value_pair(&self) -> ParseResult<(&'input str, JsonValue<'input>)> {
+    let property_name = try!(self.parse_string());
 
     self.expect_optional_whitespace();
-    self.expect(':');
+    try!(self.expect(':'));
     self.expect_optional_whitespace();
-    let value = self.parse_value();
+    let value = try!(self.parse_value());
     self.expect_optional_whitespace();
 
-    (property_name, value)
+    Ok((property_name, value))
   }
 
-  fn parse_value(&self) -> JsonValue<'input> {
-    match self.current_char() {
-      '"' => JsonValue::String(self.parse_string()),
-      c if c.is_digit(10) || c == '-' => JsonValue::Number(self.parse_number()),
-      't' | 'f' => JsonValue::Boolean(self.parse_bool()),
-      '{' => JsonValue::Object(self.parse_object()),
-      '[' => JsonValue::Array(self.parse_array()),
-      'n' => {
-        self.expect('n');
-        self.expect('u');
-        self.expect('l');
-        self.expect('l');
-        JsonValue::Null
+  fn parse_value(&self) -> ParseResult<JsonValue<'input>> {
+    Ok(
+      match self.current_char() {
+        '"' => JsonValue::String(try!(self.parse_string())),
+        c if c.is_digit(10) || c == '-' => JsonValue::Number(try!(self.parse_number())),
+        't' | 'f' => JsonValue::Boolean(try!(self.parse_bool())),
+        '{' => JsonValue::Object(try!(self.parse_object())),
+        '[' => JsonValue::Array(try!(self.parse_array())),
+        'n' => {
+          try!(self.expect('n'));
+          try!(self.expect('u'));
+          try!(self.expect('l'));
+          try!(self.expect('l'));
+          JsonValue::Null
+        }
+        _ => unimplemented!()
       }
-      _ => unimplemented!()
-    }
+    )
   }
 
-  fn parse_string(&self) -> &'input str {
-    self.expect('"');
+  fn parse_string(&self) -> ParseResult<&'input str> {
+    try!(self.expect('"'));
 
     let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
     let string = self.consume(idx).unwrap();
 
-    self.expect('"');
+    try!(self.expect('"'));
 
-    string
+    Ok(string)
   }
 
-  fn parse_number(&self) -> f64 {
+  fn parse_number(&self) -> ParseResult<f64> {
     /*
            end of integer part
            |
@@ -241,26 +254,25 @@ impl<'input> JsonParser<'input> {
 
     let string = &self.input[integer_part_start..decimal_part_end];
 
-
-    string.parse().unwrap()
+    Ok(string.parse().unwrap())
   }
 
-  fn parse_bool(&self) -> bool {
+  fn parse_bool(&self) -> ParseResult<bool> {
     match self.current_char() {
       't' => {
-        self.expect('t');
-        self.expect('r');
-        self.expect('u');
-        self.expect('e');
-        true
+        try!(self.expect('t'));
+        try!(self.expect('r'));
+        try!(self.expect('u'));
+        try!(self.expect('e'));
+        Ok(true)
       },
       'f' => {
-        self.expect('f');
-        self.expect('a');
-        self.expect('l');
-        self.expect('s');
-        self.expect('e');
-        false
+        try!(self.expect('f'));
+        try!(self.expect('a'));
+        try!(self.expect('l'));
+        try!(self.expect('s'));
+        try!(self.expect('e'));
+        Ok(false)
       },
       _ => unreachable!()
     }

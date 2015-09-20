@@ -17,7 +17,7 @@ fn nested_object_simple() {
   };
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -56,7 +56,7 @@ fn bigger_object_nested_beautified_trailing_comma() {
 
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -96,5 +96,5 @@ fn invalid_bigger_object_nested_beautified_double_comma() {
 
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }

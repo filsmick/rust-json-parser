@@ -276,5 +276,5 @@ const INPUT: &'static str = r##"[
 
 #[test]
 fn large() {
-  parse_json(INPUT);
+  parse_json(INPUT).unwrap();
 }

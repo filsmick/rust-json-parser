@@ -14,7 +14,7 @@ fn just_one_string_trailing_comma() {
 
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn bigger_object() {
 
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -46,5 +46,5 @@ fn simple_composite_array() {
 
   let expected = JsonValue::Array(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }

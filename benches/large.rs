@@ -53,12 +53,8 @@ const LARGE_JSON_STR: &'static str = r##"{
 
 
 #[bench]
-fn bench_large_1000(b: &mut Bencher) {
+fn bench_large(b: &mut Bencher) {
   b.iter(|| {
-    let n = test::black_box(1000000);
-
-    for _ in 0..n {
-      parse_json(LARGE_JSON_STR);
-    }
+    parse_json(LARGE_JSON_STR).unwrap();
   });
 }

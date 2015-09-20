@@ -11,7 +11,7 @@ fn just_one_string() {
   expected.insert("a_string", JsonValue::String("Hello world!"));
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn just_one_string_beautified() {
   expected.insert("a_string", JsonValue::String("Hello world!"));
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
 
 #[test]
@@ -37,5 +37,5 @@ fn null() {
   expected.insert("a_null_property", JsonValue::Null);
   let expected = JsonValue::Object(expected);
 
-  assert_eq!(parse_json(input), expected);
+  assert_eq!(parse_json(input).unwrap(), expected);
 }
