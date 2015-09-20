@@ -48,11 +48,7 @@ impl<'input> JsonParser<'input> {
     self.current_idx.get()
   }
 
-  fn next(&self) {
-    self.consume(1);
-  }
-
-  fn consume(&self, n: usize) -> Option<&'input str> {
+  fn next(&self, n: usize) {
     let new_idx = self.current_idx.get() + n;
 
     if new_idx < self.input.len() {
@@ -67,13 +63,9 @@ impl<'input> JsonParser<'input> {
         }
       }
 
-      let ret = Some(&self.remaining_data.get()[..n]);
       self.remaining_data.set(
         &self.input[self.current_idx.get()..]
       );
-      ret
-    } else {
-      None
     }
   }
 
@@ -90,13 +82,13 @@ impl<'input> JsonParser<'input> {
       );
     }
 
-    self.next();
+    self.next(1);
     Ok(())
   }
 
   fn expect_optional_whitespace(&self) {
     while self.current_char().is_whitespace() {
-      self.next();
+      self.next(1);
     }
   }
 
@@ -218,7 +210,7 @@ impl<'input> JsonParser<'input> {
 
     let string_start_idx = self.current_idx();
     while self.current_char() != '"' {
-      self.next();
+      self.next(1);
     }
     let string_end_idx = self.current_idx();
 
@@ -243,20 +235,20 @@ impl<'input> JsonParser<'input> {
     let integer_part_start: usize = self.current_idx.get();
 
     if self.current_char() == '-' {
-      self.next();
+      self.next(1);
     }
 
     while self.current_char().is_digit(10) {
-      self.next();
+      self.next(1);
     }
 
     let mut decimal_part_end: usize = self.current_idx.get();
 
     if self.current_char() == '.' {
-      self.next();
+      self.next(1);
       decimal_part_end += 1;
       while self.current_char().is_digit(10) {
-        self.next();
+        self.next(1);
         decimal_part_end += 1;
       }
     }
