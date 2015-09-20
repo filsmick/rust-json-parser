@@ -94,7 +94,7 @@ impl<'input> JsonParser<'input> {
     self.expect('{');
     self.expect_optional_whitespace();
 
-     loop {
+    loop {
       println!("{:?}", self.current_idx);
       let (property, value) = self.parse_key_value_pair();
       output.insert(property, value);
@@ -129,6 +129,45 @@ impl<'input> JsonParser<'input> {
     output
   }
 
+  fn parse_array(&self) -> Vec<JsonValue<'input>> {
+    let mut output = Vec::with_capacity(2);
+
+    self.expect_optional_whitespace();
+    self.expect('[');
+    self.expect_optional_whitespace();
+
+    loop {
+      let value = self.parse_value();
+      output.push(value);
+
+      self.expect_optional_whitespace();
+
+      match self.current_char() {
+        ',' => {
+          self.expect(',');
+          self.expect_optional_whitespace();
+
+          match self.current_char() {
+            ']' => {
+              self.expect(']');
+              break;
+            },
+            _ => {
+              continue;
+            },
+          }
+        },
+        ']' => {
+          self.expect(']');
+          break;
+        },
+        c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
+      }
+    }
+
+    output
+  }
+
   fn parse_key_value_pair(&self) -> (&'input str, JsonValue<'input>) {
     let property_name = self.parse_string();
     println!("Got a property name: '{}'", property_name);
@@ -152,6 +191,8 @@ impl<'input> JsonParser<'input> {
       JsonValue::Boolean(self.parse_bool())
     } else if self.current_char() == '{' {
       JsonValue::Object(self.parse_object())
+    } else if self.current_char() == '[' {
+      JsonValue::Array(self.parse_array())
     } else {
       unimplemented!()
     }
@@ -244,5 +285,6 @@ pub enum JsonValue<'a> {
   String(&'a str),
   Number(f64),
   Boolean(bool),
-  Object(HashMap<&'a str, JsonValue<'a>>)
+  Object(HashMap<&'a str, JsonValue<'a>>),
+  Array(Vec<JsonValue<'a>>)
 }

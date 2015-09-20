@@ -1,6 +1,5 @@
 extern crate json_parser;
 use json_parser::*;
-use std::collections::HashMap;
 
 
 #[test]
