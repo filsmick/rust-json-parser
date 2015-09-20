@@ -118,7 +118,17 @@ impl<'input> JsonParser<'input> {
       match self.current_char() {
         ',' => {
           self.expect(',');
-          continue;
+          self.expect_optional_whitespace();
+
+          match self.current_char() {
+            '}' => {
+              self.expect('}');
+              break;
+            },
+            _ => {
+              continue;
+            },
+          }
         },
         '}' => {
           self.expect('}');
@@ -259,17 +269,17 @@ fn test_nested_object_simple() {
   assert_eq!(parse_json(input), expected);
 }
 
-// #[test]
-// fn test_just_one_string_trailing_comma() {
-//   let input = r##"{
-//     "a_string": "Hello world!",
-// }}"##;
-//
-//   let mut expected = HashMap::new();
-//   expected.insert("a_string", JsonValue::String("Hello world!"));
-//
-//   assert_eq!(parse_json(input), expected);
-// }
+#[test]
+fn test_just_one_string_trailing_comma() {
+  let input = r##"{
+    "a_string": "Hello world!",
+}}"##;
+
+  let mut expected = HashMap::new();
+  expected.insert("a_string", JsonValue::String("Hello world!"));
+
+  assert_eq!(parse_json(input), expected);
+}
 
 
 
