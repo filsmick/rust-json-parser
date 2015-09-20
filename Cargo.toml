@@ -1,4 +1,4 @@
 [package]
-name = "toy-json-parser"
+name = "json-parser"
 version = "0.1.0"
 authors = ["Yohai Berreby (filsmick) <yohaiberreby@gmail.com>"]

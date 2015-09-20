@@ -1,30 +1,6 @@
-#![allow(dead_code)]
 #![feature(str_char)]
 use std::collections::HashMap;
 use std::cell::Cell;
-
-// fn is_token(c: char) -> bool {
-//   match c {
-//     'a'..'z' => true,
-//     'A'..'Z' => true,
-//     '_' => true,
-//     _ => false
-//   }
-// }
-//
-// #[test]
-// fn test_is_token() {
-//   assert_eq!(is_token('a'), true);
-//   assert_eq!(is_token('_'), true);
-//   assert_eq!(is_token('v'), true);
-//   assert_eq!(is_token('z'), true);
-//   assert_eq!(is_token('u'), true);
-//   assert_eq!(is_token('/'), false);
-//   assert_eq!(is_token('-'), false);
-//   assert_eq!(is_token('"'), false);
-//   assert_eq!(is_token('~'), false);
-// }
-
 
 struct JsonParser<'input> {
   input: &'input str,
@@ -59,32 +35,47 @@ impl<'input> JsonParser<'input> {
   }
 
   fn next(&self) {
-    println!("Current: {}, next: {:?}", self.current_char(), self.next_char());
+    //println!("Current: {}, next: {:?} - {}:{}", self.current_char(), self.next_char(), self.current_line.get(), self.current_column.get());
+    self.consume(1);
+  }
 
-    let new_idx = self.current_idx.get() + 1;
+  fn consume(&self, n: usize) -> Option<&'input str> {
+    println!("Consume n: {}", n);
+    let new_idx = self.current_idx.get() + n;
 
     if new_idx < self.input.len() {
       self.current_idx.set(new_idx);
+
+      for c in (&self.remaining_data.get()[..n]).chars() {
+        if c == '\n' {
+          self.current_line.set(self.current_line.get() + 1);
+          self.current_column.set(1);
+        } else {
+          self.current_column.set(self.current_column.get() + 1);
+        }
+      }
+
+      let ret = Some(&self.remaining_data.get()[..n]);
       self.remaining_data.set(
         &self.input[self.current_idx.get()..]
       );
+      ret
     } else {
       println!("Reached end of input"); // XXX: maybe current_char should return an Option.
+      None
     }
   }
 
-  fn expect(&self, expected: char) {
-    assert_eq!(
-      self.current_char(),
-      expected
-    );
-    self.next();
+  fn parse_error(&self) -> ! {
+    panic!("At {}:{}", self.current_line.get(), self.current_column.get());
   }
 
-  fn expect_one_of(&self, expected: &[char]) {
+  fn expect(&self, expected: char) {
     let current_char = self.current_char();
-    if !expected.contains(&current_char) {
-      panic!("Expected {:?}, found {}", expected, current_char);
+
+    if current_char != expected {
+      println!("Expected '{}', found '{}'", expected, current_char);
+      self.parse_error();
     }
 
     self.next();
@@ -94,11 +85,6 @@ impl<'input> JsonParser<'input> {
     while self.current_char().is_whitespace() {
       self.next();
     }
-  }
-
-  fn read_chars(&self, n: usize) -> &'input str {
-    self.current_idx.set(self.current_idx.get() + n);
-    &self.remaining_data.get()[..n]
   }
 
   fn parse_object(&self) -> HashMap<&'input str, JsonValue<'input>> {
@@ -176,7 +162,7 @@ impl<'input> JsonParser<'input> {
     println!("remaining '{}'", self.remaining_data.get());
 
     let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
-    let string = self.read_chars(idx);
+    let string = self.consume(idx).unwrap();
 
     println!("idx: {}, current_idx: {}", idx, self.current_idx.get());
     println!("current char: {:?}, next char: {:?}", self.current_char(), self.next_char());
@@ -189,7 +175,7 @@ impl<'input> JsonParser<'input> {
   fn parse_number(&self) -> f64 {
     let idx = self.remaining_data.get().chars().take_while(|c| { c.is_digit(10) || *c == '.' }).count();
 
-    let string = self.read_chars(idx);
+    let string = self.consume(idx).unwrap();
 
     println!("String to be parsed as number: {:?}", string);
     string.parse().unwrap()
@@ -218,119 +204,16 @@ impl<'input> JsonParser<'input> {
 }
 
 
-fn parse_json(input: &str) -> HashMap<&str, JsonValue> {
+pub fn parse_json(input: &str) -> HashMap<&str, JsonValue> {
   let parser = JsonParser::new(input);
   parser.parse_object()
 }
 
 
 #[derive(PartialEq, Debug)]
-enum JsonValue<'a> {
+pub enum JsonValue<'a> {
   String(&'a str),
   Number(f64),
   Boolean(bool),
   Object(HashMap<&'a str, JsonValue<'a>>)
-}
-
-#[test]
-fn test_just_one_string() {
-  let input = r##"{"a_string":"Hello world!"}"##;
-
-  let mut expected = HashMap::new();
-  expected.insert("a_string", JsonValue::String("Hello world!"));
-
-  assert_eq!(parse_json(input), expected);
-}
-
-#[test]
-fn test_just_one_string_beautified() {
-  let input = r##"{
-    "a_string": "Hello world!"
-}}"##;
-
-  let mut expected = HashMap::new();
-  expected.insert("a_string", JsonValue::String("Hello world!"));
-
-  assert_eq!(parse_json(input), expected);
-}
-
-#[test]
-fn test_nested_object_simple() {
-  let input = r##"{"object_name":{"prop_name": "value in nested object"}}"##;
-
-  let expected = {
-    let mut nested_obj = HashMap::new();
-    nested_obj.insert("prop_name", JsonValue::String("value in nested object"));
-
-    let mut top_level_obj = HashMap::new();
-    top_level_obj.insert("object_name", JsonValue::Object(nested_obj));
-
-    top_level_obj
-  };
-
-  assert_eq!(parse_json(input), expected);
-}
-
-#[test]
-fn test_just_one_string_trailing_comma() {
-  let input = r##"{
-    "a_string": "Hello world!",
-}}"##;
-
-  let mut expected = HashMap::new();
-  expected.insert("a_string", JsonValue::String("Hello world!"));
-
-  assert_eq!(parse_json(input), expected);
-}
-
-
-#[test]
-fn test_bigger_object() {
-  let input = r##"{"a_string":"Hello world!","an_integer":17,"a_float":3.14,"a_true_bool":true,"a_false_bool":false}"##;
-
-  let mut expected = HashMap::new();
-  expected.insert("a_string", JsonValue::String("Hello world!"));
-  expected.insert("an_integer", JsonValue::Number(17.0));
-  expected.insert("a_float", JsonValue::Number(3.14));
-  expected.insert("a_true_bool", JsonValue::Boolean(true));
-  expected.insert("a_false_bool", JsonValue::Boolean(false));
-
-  assert_eq!(parse_json(input), expected);
-}
-
-#[test]
-fn test_bigger_object_nested_beautified_trailing_comma() {
-  let input = r##"{
-    "a_string": "Hello world!",
-    "an_integer": 17,
-    "a_float": 3.14,
-    "a_true_bool": true,
-    "a_false_bool": false,
-    "a_nested_object": {
-        "another_nested_object": {
-            "a_deeply_nested_property": 45.89
-        }
-    }
-}"##;
-
-
-  let expected = {
-    let mut second_nested_obj = HashMap::new();
-    second_nested_obj.insert("a_deeply_nested_property", JsonValue::Number(45.89));
-
-    let mut nested_obj = HashMap::new();
-    nested_obj.insert("another_nested_object", JsonValue::Object(second_nested_obj));
-
-    let mut top_level_obj = HashMap::new();
-    top_level_obj.insert("a_string", JsonValue::String("Hello world!"));
-    top_level_obj.insert("an_integer", JsonValue::Number(17.0));
-    top_level_obj.insert("a_float", JsonValue::Number(3.14));
-    top_level_obj.insert("a_true_bool", JsonValue::Boolean(true));
-    top_level_obj.insert("a_false_bool", JsonValue::Boolean(false));
-    top_level_obj.insert("a_nested_object", JsonValue::Object(nested_obj));
-
-    top_level_obj
-  };
-
-  assert_eq!(parse_json(input), expected);
 }
