@@ -1,6 +1,6 @@
 # json-parser
 **Warning: this is a learning project. It may be slow, or dysfunctional.
-Use [Serde]() instead.**
+Use [serde](https://github.com/serde-rs/serde) instead.**
 
 A JSON parser written in Rust as a learning project.
 Inspired by [Douglas Crockford's JSON parser](https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js).
