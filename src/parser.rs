@@ -44,6 +44,10 @@ impl<'input> JsonParser<'input> {
     self.input.char_at(self.current_idx.get())
   }
 
+  fn current_idx(&self) -> usize {
+    self.current_idx.get()
+  }
+
   fn next(&self) {
     self.consume(1);
   }
@@ -212,8 +216,13 @@ impl<'input> JsonParser<'input> {
   fn parse_string(&self) -> ParseResult<&'input str> {
     try!(self.expect('"'));
 
-    let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
-    let string = self.consume(idx).unwrap();
+    let string_start_idx = self.current_idx();
+    while self.current_char() != '"' {
+      self.next();
+    }
+    let string_end_idx = self.current_idx();
+
+    let string = &self.input[string_start_idx..string_end_idx];
 
     try!(self.expect('"'));
 
