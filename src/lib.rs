@@ -60,10 +60,17 @@ impl<'input> JsonParser<'input> {
 
   fn next(&self) {
     println!("Current: {}, next: {:?}", self.current_char(), self.next_char());
-    self.current_idx.set(self.current_idx.get() + 1);
-    self.remaining_data.set(
-      &self.input[self.current_idx.get()..]
-    );
+
+    let new_idx = self.current_idx.get() + 1;
+
+    if new_idx < self.input.len() {
+      self.current_idx.set(new_idx);
+      self.remaining_data.set(
+        &self.input[self.current_idx.get()..]
+      );
+    } else {
+      println!("Reached end of input"); // XXX: maybe current_char should return an Option.
+    }
   }
 
   fn expect(&self, expected: char) {
@@ -83,6 +90,12 @@ impl<'input> JsonParser<'input> {
     self.next();
   }
 
+  fn expect_optional_whitespace(&self) {
+    while self.current_char().is_whitespace() {
+      self.next();
+    }
+  }
+
   fn read_chars(&self, n: usize) -> &'input str {
     self.current_idx.set(self.current_idx.get() + n);
     &self.remaining_data.get()[..n]
@@ -91,12 +104,16 @@ impl<'input> JsonParser<'input> {
   fn parse_object(&self) -> HashMap<&'input str, JsonValue<'input>> {
     let mut output: HashMap<&str, JsonValue> = HashMap::new();
 
+    self.expect_optional_whitespace();
     self.expect('{');
+    self.expect_optional_whitespace();
 
      loop {
       println!("{:?}", self.current_idx);
       let (property, value) = self.parse_key_value_pair();
       output.insert(property, value);
+
+      self.expect_optional_whitespace();
 
       match self.current_char() {
         ',' => {
@@ -111,6 +128,8 @@ impl<'input> JsonParser<'input> {
       }
     }
 
+    self.expect_optional_whitespace();
+
     output
   }
 
@@ -118,7 +137,9 @@ impl<'input> JsonParser<'input> {
     let property_name = self.parse_string();
     println!("Got a property name: '{}'", property_name);
 
+    self.expect_optional_whitespace();
     self.expect(':');
+    self.expect_optional_whitespace();
     // TODO whitespace
 
     let value = self.parse_value();
@@ -200,11 +221,11 @@ enum JsonValue<'a> {
   String(&'a str),
   Number(f64),
   Boolean(bool),
-  // we don't handle nested objects for now
+  Object(HashMap<&'a str, JsonValue<'a>>)
 }
 
 #[test]
-fn test_just_one_string_minified() {
+fn test_just_one_string() {
   let input = r##"{"a_string":"Hello world!"}"##;
 
   let mut expected = HashMap::new();
@@ -213,10 +234,35 @@ fn test_just_one_string_minified() {
   assert_eq!(parse_json(input), expected);
 }
 
+#[test]
+fn test_just_one_string_beautified() {
+  let input = r##"{
+    "a_string": "Hello world!"
+}}"##;
+
+  let mut expected = HashMap::new();
+  expected.insert("a_string", JsonValue::String("Hello world!"));
+
+  assert_eq!(parse_json(input), expected);
+}
+
+// #[test]
+// fn test_just_one_string_trailing_comma() {
+//   let input = r##"{
+//     "a_string": "Hello world!",
+// }}"##;
+//
+//   let mut expected = HashMap::new();
+//   expected.insert("a_string", JsonValue::String("Hello world!"));
+//
+//   assert_eq!(parse_json(input), expected);
+// }
+
+
 
 
 #[test]
-fn test_bigger_object_minified() {
+fn test_bigger_object() {
   let input = r##"{"a_string":"Hello world!","an_integer":17,"a_float":3.14,"a_true_bool":true,"a_false_bool":false}"##;
 
   let mut expected = HashMap::new();
