@@ -246,6 +246,23 @@ fn test_just_one_string_beautified() {
   assert_eq!(parse_json(input), expected);
 }
 
+#[test]
+fn test_nested_object_simple() {
+  let input = r##"{"object_name":{"prop_name": "value in nested object"}}"##;
+
+  let expected = {
+    let mut nested_obj = HashMap::new();
+    nested_obj.insert("prop_name", JsonValue::String("value in nested object"));
+
+    let mut top_level_obj = HashMap::new();
+    top_level_obj.insert("object_name", JsonValue::Object(nested_obj));
+
+    top_level_obj
+  };
+
+  assert_eq!(parse_json(input), expected);
+}
+
 // #[test]
 // fn test_just_one_string_trailing_comma() {
 //   let input = r##"{
