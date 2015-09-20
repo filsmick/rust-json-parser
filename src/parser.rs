@@ -40,7 +40,6 @@ impl<'input> JsonParser<'input> {
   }
 
   fn consume(&self, n: usize) -> Option<&'input str> {
-
     let new_idx = self.current_idx.get() + n;
 
     if new_idx < self.input.len() {
@@ -61,7 +60,6 @@ impl<'input> JsonParser<'input> {
       );
       ret
     } else {
-
       None
     }
   }
@@ -171,13 +169,11 @@ impl<'input> JsonParser<'input> {
   fn parse_key_value_pair(&self) -> (&'input str, JsonValue<'input>) {
     let property_name = self.parse_string();
 
-
     self.expect_optional_whitespace();
     self.expect(':');
     self.expect_optional_whitespace();
     let value = self.parse_value();
     self.expect_optional_whitespace();
-
 
     (property_name, value)
   }
@@ -189,6 +185,13 @@ impl<'input> JsonParser<'input> {
       't' | 'f' => JsonValue::Boolean(self.parse_bool()),
       '{' => JsonValue::Object(self.parse_object()),
       '[' => JsonValue::Array(self.parse_array()),
+      'n' => {
+        self.expect('n');
+        self.expect('u');
+        self.expect('l');
+        self.expect('l');
+        JsonValue::Null
+      }
       _ => unimplemented!()
     }
   }
@@ -196,12 +199,8 @@ impl<'input> JsonParser<'input> {
   fn parse_string(&self) -> &'input str {
     self.expect('"');
 
-
     let idx = self.remaining_data.get().chars().take_while(|c| *c != '"').count();
     let string = self.consume(idx).unwrap();
-
-
-
 
     self.expect('"');
 

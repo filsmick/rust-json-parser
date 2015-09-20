@@ -6,5 +6,6 @@ pub enum JsonValue<'a> {
   Number(f64),
   Boolean(bool),
   Object(HashMap<&'a str, JsonValue<'a>>),
-  Array(Vec<JsonValue<'a>>)
+  Array(Vec<JsonValue<'a>>),
+  Null
 }
