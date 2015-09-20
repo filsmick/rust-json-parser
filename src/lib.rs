@@ -1,6 +1,4 @@
 #![feature(str_char)]
-use std::collections::HashMap;
-use std::cell::Cell;
 
 mod json_value;
 pub use json_value::JsonValue;
