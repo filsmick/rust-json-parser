@@ -11,3 +11,6 @@ I'm doing this for fun, and to teach myself parser design.
 - exponentials
 - better errors (no panic)
 - (optional) handle floats and integers separately
+
+## Benchmark
+    test bench_large ... bench:       7,006 ns/iter (+/- 617)
