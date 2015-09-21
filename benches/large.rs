@@ -5,6 +5,8 @@ use test::Bencher;
 extern crate json_parser;
 use json_parser::*;
 
+extern crate serde_json;
+
 const LARGE_JSON_STR: &'static str = r##"{
 "_id": "55fe8588577622a8d848e4a0",
 "index": 0,
@@ -53,8 +55,15 @@ const LARGE_JSON_STR: &'static str = r##"{
 
 
 #[bench]
-fn bench_large(b: &mut Bencher) {
+fn json_parser_large(b: &mut Bencher) {
   b.iter(|| {
     parse_json(LARGE_JSON_STR).unwrap();
+  });
+}
+
+#[bench]
+fn serde_json_large(b: &mut Bencher) {
+  b.iter(|| {
+    serde_json::from_str::<serde_json::Value>(LARGE_JSON_STR).unwrap();
   });
 }

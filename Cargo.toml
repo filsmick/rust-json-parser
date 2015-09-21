@@ -6,3 +6,6 @@ authors = ["Yohai Berreby (filsmick) <yohaiberreby@gmail.com>"]
 [profile.release]
 lto = false
 debug = true
+
+[dev-dependencies]
+serde_json = "0.6.0"
