@@ -9,8 +9,9 @@ I'm doing this for fun, and to teach myself parser design.
 
 ## Things left to implement:
 - exponentials
-- better errors (no panic)
 - (optional) handle floats and integers separately
+- escape code handling
+- unicode code points
 
 ## Benchmark
     test bench_large ... bench:       7,006 ns/iter (+/- 617)

@@ -261,7 +261,7 @@ impl<'input> JsonParser<'input> {
 
     let string = &self.input[integer_part_start..decimal_part_end];
 
-    Ok(string.parse().unwrap())
+    Ok(string.parse().unwrap()) // it is unclear whether this can fail
   }
 
   fn parse_bool(&self) -> ParseResult<bool> {
