@@ -1,5 +1,5 @@
 # json-parser
-**Warning: this is a learning project. It may be slow, or dysfunctional.
+**Warning: this is a learning project.
 Use [serde](https://github.com/serde-rs/serde) instead.**
 
 A JSON parser written in Rust as a learning project.
