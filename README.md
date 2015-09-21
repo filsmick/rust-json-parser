@@ -10,8 +10,10 @@ I'm doing this for fun, and to teach myself parser design.
 ## Things left to implement:
 - exponentials
 - (optional) handle floats and integers separately
-- escape code handling
-- unicode code points
+- backslash escapes handling
+  - escape characters: \n, \r, \f, \b, \t
+  - escaped characters: \, / (https://stackoverflow.com/questions/4264877/why-is-the-slash-an-escapable-character-in-json), "
+  - unicode code points: \uXXXX (4 hex digits)
 
 ## Benchmark
     test bench_large ... bench:       7,006 ns/iter (+/- 617)
