@@ -3,20 +3,12 @@ use std::cell::Cell;
 use JsonValue;
 use parse_error::*;
 
-fn is_digit(b: u8) -> bool {
-  match b {
-    b'0' | b'1' | b'2' | b'3' | b'4' | b'5'
-    | b'6' | b'7' | b'8' | b'9' => true,
-    _ => false
-  }
-}
-
 pub struct JsonParser<'input> {
   input: &'input str,
   current_idx: Cell<usize>,
 }
 
-// Public interface
+/* Public interface */
 impl<'input> JsonParser<'input> {
   /// Create a new `JsonParser` with the given input.
   pub fn new(input: &str) -> JsonParser {
@@ -32,7 +24,22 @@ impl<'input> JsonParser<'input> {
   }
 }
 
-// Private methods
+/* Utility functions */
+fn is_digit(b: u8) -> bool {
+  match b {
+    b'0'...b'9' => true,
+    _ => false
+  }
+}
+
+fn is_whitespace(b: u8) -> bool {
+  match b {
+    b' ' | b'\n' | b'\r' | b'\t' => true,
+    _ => false
+  }
+}
+
+/* Private methods */
 impl<'input> JsonParser<'input> {
   fn current_byte(&self) -> Option<u8> {
     if self.current_idx() < self.input.len() {
@@ -70,13 +77,6 @@ impl<'input> JsonParser<'input> {
   }
 
   fn expect_optional_whitespace(&self) {
-    fn is_whitespace(b: u8) -> bool {
-      match b {
-        b' ' | b'\n' | b'\r' | b'\t' => true,
-        _ => false
-      }
-    }
-
     while let Some(b) = self.current_byte() {
       if !is_whitespace(b) { break }
       self.next(1);
