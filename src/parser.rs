@@ -267,14 +267,14 @@ impl<'input> JsonParser<'input> {
       self.next(1);
     }
 
-    let string_slice = str::from_utf8(byte_slice).unwrap();
+    let string_slice = unsafe { str::from_utf8_unchecked(byte_slice) };
 
     try!(self.expect('"'));
 
     Ok(
       match byte_buf {
         Some(buf) => Cow::Owned(
-          String::from_utf8(buf).unwrap()
+          unsafe { String::from_utf8_unchecked(buf) }
         ),
         None => Cow::Borrowed(string_slice)
       }
