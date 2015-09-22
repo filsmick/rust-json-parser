@@ -208,7 +208,7 @@ impl<'input> JsonParser<'input> {
         b'"' => JsonValue::String(try!(self.parse_string())),
         b'{' => JsonValue::Object(try!(self.parse_object())),
         b'[' => JsonValue::Array(try!(self.parse_array())),
-        c if is_digit(c) || c == b'-' => JsonValue::Number(try!(self.parse_number())),
+        b'0'...b'9' | b'-' => JsonValue::Number(try!(self.parse_number())),
         b't' | b'f' => JsonValue::Boolean(try!(self.parse_bool())),
         b'n' => {
           try!(self.expect('n'));
