@@ -39,7 +39,7 @@ impl<'input> JsonParser<'input> {
   }
 
   fn next(&self, n: usize) {
-    let new_idx = self.current_idx.get() + n;
+    let new_idx = self.current_idx() + n;
 
     if new_idx < self.input.len() {
       self.current_idx.set(new_idx);
@@ -225,7 +225,7 @@ impl<'input> JsonParser<'input> {
     | start of integer part
     */
 
-    let integer_part_start: usize = self.current_idx.get();
+    let integer_part_start: usize = self.current_idx();
 
     if self.current_char() == '-' {
       self.next(1);
@@ -235,7 +235,7 @@ impl<'input> JsonParser<'input> {
       self.next(1);
     }
 
-    let mut decimal_part_end: usize = self.current_idx.get();
+    let mut decimal_part_end: usize = self.current_idx();
 
     if self.current_char() == '.' {
       self.next(1);
