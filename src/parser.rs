@@ -6,8 +6,6 @@ use parse_error::*;
 pub struct JsonParser<'input> {
   input: &'input str,
   current_idx: Cell<usize>,
-  current_line: Cell<usize>,
-  current_column: Cell<usize>
 }
 
 // Public interface
@@ -17,8 +15,6 @@ impl<'input> JsonParser<'input> {
     JsonParser {
       input: input,
       current_idx: Cell::new(0),
-      current_line: Cell::new(1), // lines and columns are 1-indexed
-      current_column: Cell::new(1)
     }
   }
 
@@ -30,14 +26,6 @@ impl<'input> JsonParser<'input> {
 
 // Private methods
 impl<'input> JsonParser<'input> {
-  fn current_line(&self) -> usize {
-    self.current_line.get()
-  }
-
-  fn current_column(&self) -> usize {
-    self.current_column.get()
-  }
-
   fn current_char(&self) -> char {
     self.input.char_at(self.current_idx.get())
   }
@@ -55,23 +43,6 @@ impl<'input> JsonParser<'input> {
 
     if new_idx < self.input.len() {
       self.current_idx.set(new_idx);
-
-      let update_ctx = |c| {
-        if c == '\n' {
-          self.current_line.set(self.current_line.get() + 1);
-          self.current_column.set(1);
-        } else {
-          self.current_column.set(self.current_column.get() + 1);
-        }
-      };
-
-      if n == 1 {
-        update_ctx(self.current_char());
-      } else {
-        for c in (&self.remaining_data()[..n]).chars() {
-          update_ctx(c);
-        }
-      }
     }
   }
 
@@ -81,9 +52,9 @@ impl<'input> JsonParser<'input> {
     if found != expected {
       return Err(
         ParseError::new(
-          ParseErrorKind::UnexpectedCharacter(found, expected),
-          self.current_line(),
-          self.current_column()
+          self.input,
+          self.current_idx(),
+          ParseErrorKind::UnexpectedCharacter(found, expected)
         )
       );
     }
