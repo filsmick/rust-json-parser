@@ -16,8 +16,8 @@ I'm doing this for fun, and to teach myself parser design.
   - unicode code points: \uXXXX (4 hex digits)
 
 ## Benchmark
-    test json_parser_large ... bench:       5,450 ns/iter (+/- 337)
-    test serde_json_large  ... bench:      17,030 ns/iter (+/- 494)
+    test json_parser_large ... bench:       4,841 ns/iter (+/- 328)
+    test serde_json_large  ... bench:      17,333 ns/iter (+/- 2,498)
 
 Note: considering `json_parser` still misses important features like
 exponentials and escapes, it's not very surprising that it's faster than
