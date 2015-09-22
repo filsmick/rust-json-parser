@@ -49,6 +49,14 @@ impl<'input> JsonParser<'input> {
     }
   }
 
+  fn current_char(&self) -> Option<char> {
+    if self.current_idx() < self.input.len() {
+      Some(self.input.char_at(self.current_idx()))
+    } else {
+      None
+    }
+  }
+
   fn current_idx(&self) -> usize {
     self.current_idx.get()
   }
@@ -59,8 +67,8 @@ impl<'input> JsonParser<'input> {
     self.current_idx.set(new_idx);
   }
 
-  fn expect(&self, expected: u8) -> ParseResult<()> {
-    let found = self.current_byte().unwrap();
+  fn expect(&self, expected: char) -> ParseResult<()> {
+    let found = self.current_char().unwrap();
 
     if found != expected {
       return Err(
@@ -87,7 +95,7 @@ impl<'input> JsonParser<'input> {
     let mut output: HashMap<&str, JsonValue> = HashMap::new();
 
     self.expect_optional_whitespace();
-    try!(self.expect(b'{'));
+    try!(self.expect('{'));
     self.expect_optional_whitespace();
 
     loop {
@@ -99,12 +107,12 @@ impl<'input> JsonParser<'input> {
 
       match self.current_byte().unwrap() {
         b',' => {
-          try!(self.expect(b','));
+          try!(self.expect(','));
           self.expect_optional_whitespace();
 
           match self.current_byte().unwrap() {
             b'}' => {
-              try!(self.expect(b'}'));
+              try!(self.expect('}'));
               break;
             },
             _ => {
@@ -113,7 +121,7 @@ impl<'input> JsonParser<'input> {
           }
         },
         b'}' => {
-          try!(self.expect(b'}'));
+          try!(self.expect('}'));
           break;
         },
         c => {
@@ -121,7 +129,7 @@ impl<'input> JsonParser<'input> {
             ParseError::new(
               self.input,
               self.current_idx(),
-              ParseErrorKind::UnexpectedCharacter(c, vec![b',', b'}'])
+              ParseErrorKind::UnexpectedCharacter(self.current_char().unwrap(), vec![',', '}'])
             )
           );
         },
@@ -137,7 +145,7 @@ impl<'input> JsonParser<'input> {
     let mut output = Vec::with_capacity(2);
 
     self.expect_optional_whitespace();
-    try!(self.expect(b'['));
+    try!(self.expect('['));
     self.expect_optional_whitespace();
 
     loop {
@@ -148,12 +156,12 @@ impl<'input> JsonParser<'input> {
 
       match self.current_byte().unwrap() {
         b',' => {
-          try!(self.expect(b','));
+          try!(self.expect(','));
           self.expect_optional_whitespace();
 
           match self.current_byte().unwrap() {
             b']' => {
-              try!(self.expect(b']'));
+              try!(self.expect(']'));
               break;
             },
             _ => {
@@ -162,7 +170,7 @@ impl<'input> JsonParser<'input> {
           }
         },
         b']' => {
-          try!(self.expect(b']'));
+          try!(self.expect(']'));
           break;
         },
         c => {
@@ -170,7 +178,7 @@ impl<'input> JsonParser<'input> {
             ParseError::new(
               self.input,
               self.current_idx(),
-              ParseErrorKind::UnexpectedCharacter(c, vec![b',', b']'])
+              ParseErrorKind::UnexpectedCharacter(self.current_char().unwrap(), vec![',', ']'])
             )
           );
         },
@@ -184,7 +192,7 @@ impl<'input> JsonParser<'input> {
     let property_name = try!(self.parse_string());
 
     self.expect_optional_whitespace();
-    try!(self.expect(b':'));
+    try!(self.expect(':'));
     self.expect_optional_whitespace();
     let value = try!(self.parse_value());
     self.expect_optional_whitespace();
@@ -201,10 +209,10 @@ impl<'input> JsonParser<'input> {
         c if is_digit(c) || c == b'-' => JsonValue::Number(try!(self.parse_number())),
         b't' | b'f' => JsonValue::Boolean(try!(self.parse_bool())),
         b'n' => {
-          try!(self.expect(b'n'));
-          try!(self.expect(b'u'));
-          try!(self.expect(b'l'));
-          try!(self.expect(b'l'));
+          try!(self.expect('n'));
+          try!(self.expect('u'));
+          try!(self.expect('l'));
+          try!(self.expect('l'));
           JsonValue::Null
         }
         _ => unimplemented!()
@@ -213,7 +221,7 @@ impl<'input> JsonParser<'input> {
   }
 
   fn parse_string(&self) -> ParseResult<&'input str> {
-    try!(self.expect(b'"'));
+    try!(self.expect('"'));
 
     let string_start_idx = self.current_idx();
     while self.current_byte().unwrap() != b'"' {
@@ -223,7 +231,7 @@ impl<'input> JsonParser<'input> {
 
     let string = &self.input[string_start_idx..string_end_idx];
 
-    try!(self.expect(b'"'));
+    try!(self.expect('"'));
 
     Ok(string)
   }
@@ -268,18 +276,18 @@ impl<'input> JsonParser<'input> {
   fn parse_bool(&self) -> ParseResult<bool> {
     match self.current_byte().unwrap() {
       b't' => {
-        try!(self.expect(b't'));
-        try!(self.expect(b'r'));
-        try!(self.expect(b'u'));
-        try!(self.expect(b'e'));
+        try!(self.expect('t'));
+        try!(self.expect('r'));
+        try!(self.expect('u'));
+        try!(self.expect('e'));
         Ok(true)
       },
       b'f' => {
-        try!(self.expect(b'f'));
-        try!(self.expect(b'a'));
-        try!(self.expect(b'l'));
-        try!(self.expect(b's'));
-        try!(self.expect(b'e'));
+        try!(self.expect('f'));
+        try!(self.expect('a'));
+        try!(self.expect('l'));
+        try!(self.expect('s'));
+        try!(self.expect('e'));
         Ok(false)
       },
       _ => unreachable!()
