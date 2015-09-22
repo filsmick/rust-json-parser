@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::cell::Cell;
 use std::borrow::Cow;
+use std::str;
 use JsonValue;
 use parse_error::*;
 
@@ -125,7 +126,7 @@ impl<'input> JsonParser<'input> {
           try!(self.expect('}'));
           break;
         },
-        c => {
+        _ => {
           return Err(
             ParseError::new(
               self.input,
@@ -174,7 +175,7 @@ impl<'input> JsonParser<'input> {
           try!(self.expect(']'));
           break;
         },
-        c => {
+        _ => {
           return Err(
             ParseError::new(
               self.input,
@@ -224,17 +225,60 @@ impl<'input> JsonParser<'input> {
   fn parse_string(&self) -> ParseResult<Cow<'input, str>> {
     try!(self.expect('"'));
 
+    let mut byte_buf: Option<Vec<u8>> = None;
+
     let string_start_idx = self.current_idx();
-    while self.current_byte().unwrap() != b'"' {
+    let mut string_end_idx;
+    let mut byte_slice;
+
+    loop {
+      string_end_idx = self.current_idx();
+      byte_slice = &self.input.as_bytes()[string_start_idx..string_end_idx];
+
+      let b = self.current_byte().unwrap();
+
+      match b {
+        b'"' => break,
+
+        b'\\' => {
+          self.next(1);
+          let b = self.current_byte().unwrap();
+
+          let mut byte_buf_unwrapped = byte_buf.unwrap_or(byte_slice.to_vec());
+
+          match b {
+            b'"' => byte_buf_unwrapped.push(b'"'),
+            b'\\' => byte_buf_unwrapped.push(b'\\'),
+            b'n' => byte_buf_unwrapped.push(b'\n'),
+            b'r' => byte_buf_unwrapped.push(b'\r'),
+            b't' => byte_buf_unwrapped.push(b'\t'),
+            c => panic!("{}", ::std::char::from_u32(c as u32).unwrap())
+          }
+          byte_buf = Some(byte_buf_unwrapped);
+        },
+        c => {
+          match byte_buf {
+            Some(ref mut buf) => buf.push(c),
+            None => {}
+          }
+        }
+      }
+
       self.next(1);
     }
-    let string_end_idx = self.current_idx();
 
-    let string = Cow::Borrowed(&self.input[string_start_idx..string_end_idx]);
+    let string_slice = str::from_utf8(byte_slice).unwrap();
 
     try!(self.expect('"'));
 
-    Ok(string)
+    Ok(
+      match byte_buf {
+        Some(buf) => Cow::Owned(
+          String::from_utf8(buf).unwrap()
+        ),
+        None => Cow::Borrowed(string_slice)
+      }
+    )
   }
 
   fn parse_number(&self) -> ParseResult<f64> {
