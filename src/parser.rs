@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::cell::Cell;
+use std::borrow::Cow;
 use JsonValue;
 use parse_error::*;
 
@@ -91,8 +92,8 @@ impl<'input> JsonParser<'input> {
     }
   }
 
-  fn parse_object(&self) -> ParseResult<HashMap<&'input str, JsonValue<'input>>> {
-    let mut output: HashMap<&str, JsonValue> = HashMap::new();
+  fn parse_object(&self) -> ParseResult<HashMap<Cow<'input, str>, JsonValue<'input>>> {
+    let mut output = HashMap::new();
 
     self.expect_optional_whitespace();
     try!(self.expect('{'));
@@ -188,7 +189,7 @@ impl<'input> JsonParser<'input> {
     Ok(output)
   }
 
-  fn parse_key_value_pair(&self) -> ParseResult<(&'input str, JsonValue<'input>)> {
+  fn parse_key_value_pair(&self) -> ParseResult<(Cow<'input, str>, JsonValue<'input>)> {
     let property_name = try!(self.parse_string());
 
     self.expect_optional_whitespace();
@@ -220,7 +221,7 @@ impl<'input> JsonParser<'input> {
     )
   }
 
-  fn parse_string(&self) -> ParseResult<&'input str> {
+  fn parse_string(&self) -> ParseResult<Cow<'input, str>> {
     try!(self.expect('"'));
 
     let string_start_idx = self.current_idx();
@@ -229,7 +230,7 @@ impl<'input> JsonParser<'input> {
     }
     let string_end_idx = self.current_idx();
 
-    let string = &self.input[string_start_idx..string_end_idx];
+    let string = Cow::Borrowed(&self.input[string_start_idx..string_end_idx]);
 
     try!(self.expect('"'));
 

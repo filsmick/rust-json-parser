@@ -1,6 +1,7 @@
 extern crate json_parser;
 use json_parser::*;
 use std::collections::HashMap;
+use std::borrow::Cow;
 
 #[test]
 fn nested_object_simple() {
@@ -8,10 +9,10 @@ fn nested_object_simple() {
 
   let expected = {
     let mut nested_obj = HashMap::new();
-    nested_obj.insert("prop_name", JsonValue::String("value in nested object"));
+    nested_obj.insert(Cow::Borrowed("prop_name"), JsonValue::String(Cow::Borrowed("value in nested object")));
 
     let mut top_level_obj = HashMap::new();
-    top_level_obj.insert("object_name", JsonValue::Object(nested_obj));
+    top_level_obj.insert(Cow::Borrowed("object_name"), JsonValue::Object(nested_obj));
 
     top_level_obj
   };
@@ -38,18 +39,18 @@ fn bigger_object_nested_beautified_trailing_comma() {
 
   let expected = {
     let mut second_nested_obj = HashMap::new();
-    second_nested_obj.insert("a_deeply_nested_property", JsonValue::Number(45.89));
+    second_nested_obj.insert(Cow::Borrowed("a_deeply_nested_property"), JsonValue::Number(45.89));
 
     let mut nested_obj = HashMap::new();
-    nested_obj.insert("another_nested_object", JsonValue::Object(second_nested_obj));
+    nested_obj.insert(Cow::Borrowed("another_nested_object"), JsonValue::Object(second_nested_obj));
 
     let mut top_level_obj = HashMap::new();
-    top_level_obj.insert("a_string", JsonValue::String("Hello world!"));
-    top_level_obj.insert("an_integer", JsonValue::Number(17.0));
-    top_level_obj.insert("a_float", JsonValue::Number(3.26));
-    top_level_obj.insert("a_true_bool", JsonValue::Boolean(true));
-    top_level_obj.insert("a_false_bool", JsonValue::Boolean(false));
-    top_level_obj.insert("a_nested_object", JsonValue::Object(nested_obj));
+    top_level_obj.insert(Cow::Borrowed("a_string"), JsonValue::String(Cow::Borrowed("Hello world!")));
+    top_level_obj.insert(Cow::Borrowed("an_integer"), JsonValue::Number(17.0));
+    top_level_obj.insert(Cow::Borrowed("a_float"), JsonValue::Number(3.26));
+    top_level_obj.insert(Cow::Borrowed("a_true_bool"), JsonValue::Boolean(true));
+    top_level_obj.insert(Cow::Borrowed("a_false_bool"), JsonValue::Boolean(false));
+    top_level_obj.insert(Cow::Borrowed("a_nested_object"), JsonValue::Object(nested_obj));
 
     top_level_obj
   };
@@ -78,18 +79,18 @@ fn invalid_bigger_object_nested_beautified_double_comma() {
 
   let expected = {
     let mut second_nested_obj = HashMap::new();
-    second_nested_obj.insert("a_deeply_nested_property", JsonValue::Number(45.89));
+    second_nested_obj.insert(Cow::Borrowed("a_deeply_nested_property"), JsonValue::Number(45.89));
 
     let mut nested_obj = HashMap::new();
-    nested_obj.insert("another_nested_object", JsonValue::Object(second_nested_obj));
+    nested_obj.insert(Cow::Borrowed("another_nested_object"), JsonValue::Object(second_nested_obj));
 
     let mut top_level_obj = HashMap::new();
-    top_level_obj.insert("a_string", JsonValue::String("Hello world!"));
-    top_level_obj.insert("an_integer", JsonValue::Number(17.0));
-    top_level_obj.insert("a_float", JsonValue::Number(3.14));
-    top_level_obj.insert("a_true_bool", JsonValue::Boolean(true));
-    top_level_obj.insert("a_false_bool", JsonValue::Boolean(false));
-    top_level_obj.insert("a_nested_object", JsonValue::Object(nested_obj));
+    top_level_obj.insert(Cow::Borrowed("a_string"), JsonValue::String(Cow::Borrowed("Hello world!")));
+    top_level_obj.insert(Cow::Borrowed("an_integer"), JsonValue::Number(17.0));
+    top_level_obj.insert(Cow::Borrowed("a_float"), JsonValue::Number(3.14));
+    top_level_obj.insert(Cow::Borrowed("a_true_bool"), JsonValue::Boolean(true));
+    top_level_obj.insert(Cow::Borrowed("a_false_bool"), JsonValue::Boolean(false));
+    top_level_obj.insert(Cow::Borrowed("a_nested_object"), JsonValue::Object(nested_obj));
 
     top_level_obj
   };
