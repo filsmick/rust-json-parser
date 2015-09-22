@@ -54,7 +54,7 @@ impl<'input> JsonParser<'input> {
         ParseError::new(
           self.input,
           self.current_idx(),
-          ParseErrorKind::UnexpectedCharacter(found, expected)
+          ParseErrorKind::UnexpectedCharacter(found, vec![expected])
         )
       );
     }
@@ -102,7 +102,15 @@ impl<'input> JsonParser<'input> {
           try!(self.expect('}'));
           break;
         },
-        c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
+        c => {
+          return Err(
+            ParseError::new(
+              self.input,
+              self.current_idx(),
+              ParseErrorKind::UnexpectedCharacter(c, vec![',', '}'])
+            )
+          );
+        },
       }
     }
 
@@ -143,7 +151,15 @@ impl<'input> JsonParser<'input> {
           try!(self.expect(']'));
           break;
         },
-        c => panic!("Unexpected character '{}' at {}", c, self.current_idx.get()),
+        c => {
+          return Err(
+            ParseError::new(
+              self.input,
+              self.current_idx(),
+              ParseErrorKind::UnexpectedCharacter(c, vec![',', ']'])
+            )
+          );
+        },
       }
     }
 

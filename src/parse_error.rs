@@ -34,7 +34,7 @@ impl ParseErrorContext {
 #[derive(Debug)]
 pub enum ParseErrorKind {
   UnexpectedEndOfInput,
-  UnexpectedCharacter(char, char)
+  UnexpectedCharacter(char, Vec<char>)
 }
 
 #[derive(Debug)]
