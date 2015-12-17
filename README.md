@@ -1,6 +1,8 @@
 # json-parser
+[![Build Status](https://travis-ci.org/yberreby/rust-json-parser.svg?branch=master)](https://travis-ci.org/yberreby/rust-json-parser)
+
 **Warning: this is a learning project.
-Use [serde](https://github.com/serde-rs/serde) instead.**
+You should probably use [serde](https://github.com/serde-rs/serde) instead.**
 
 A JSON parser written in Rust as a learning project.
 Inspired by [Douglas Crockford's JSON parser](https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js).
